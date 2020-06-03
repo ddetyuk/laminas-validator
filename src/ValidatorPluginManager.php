@@ -570,16 +570,29 @@ class ValidatorPluginManager extends AbstractPluginManager
             $validator = $first;
         }
 
+        if (! $validator instanceof Translator\TranslatorAwareInterface) {
+            return;
+        }
+
         // V2 means we pull it from the parent container
         if ($container === $this && method_exists($container, 'getServiceLocator') && $container->getServiceLocator()) {
             $container = $container->getServiceLocator();
         }
 
-        if ($validator instanceof Translator\TranslatorAwareInterface) {
-            if ($container && $container->has('MvcTranslator')) {
-                $validator->setTranslator($container->get('MvcTranslator'));
-            }
+        if (! $container) {
+            return;
         }
+
+        if ($container->has('MvcTranslator')) {
+            $validator->setTranslator($container->get('MvcTranslator'));
+            return;
+        }
+
+        if ($container->has(Translator\TranslatorInterface::class)) {
+            $validator->setTranslator($container->get(Translator\TranslatorInterface::class));
+            return;
+        }
+
     }
 
     /**
